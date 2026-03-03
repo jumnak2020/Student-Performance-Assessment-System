@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Comparison</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .comparison-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .comparison-table th { background-color: #2c7be5; color: white; padding: 12px; text-align: center; }
+        .comparison-table td { padding: 10px; text-align: center; border: 1px solid #ddd; }
+        .comparison-table tr:nth-child(even) { background-color: #f4f4f9; }
+        .best-model { background-color: #d4edda !important; font-weight: bold; }
+        .metric-card { background: white; border-radius: 8px; padding: 20px; margin: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; flex: 1; }
+        .metric-card h3 { color: #2c7be5; margin-bottom: 10px; }
+        .metric-value { font-size: 28px; font-weight: bold; color: #28a745; }
+        .cards-container { display: flex; flex-wrap: wrap; justify-content: space-between; margin: 20px 0; }
+        .winner-badge { background: #28a745; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; margin-left: 8px; }
+        .class-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; color: white; font-weight: bold; margin: 5px; }
+        .slow    { background-color: #dc3545; }
+        .average { background-color: #ffc107; color: #333; }
+        .fast    { background-color: #28a745; }
+        .role-badge { display: inline-block; padding: 5px 14px; border-radius: 14px; font-size: 13px; font-weight: bold; color: white; }
+        .badge-school-admin   { background: #2c7be5; }
+        .badge-college-admin  { background: #6f42c1; }
+        .badge-school-teacher { background: #28a745; }
+        .badge-college-teacher{ background: #fd7e14; }
+        .explanation-box { background: #f8f9fa; border-left: 4px solid #2c7be5; padding: 15px; margin: 10px 0; border-radius: 0 8px 8px 0; }
+        .section-title { color: #2c7be5; border-bottom: 2px solid #2c7be5; padding-bottom: 8px; margin-top: 30px; }
+        .institution-toggle { text-align: center; margin: 20px 0; }
+        .institution-toggle a {
+            display: inline-block; padding: 12px 30px; margin: 0 10px;
+            background: #6c757d; color: white; text-decoration: none;
+            border-radius: 25px; font-weight: bold; transition: all 0.3s;
+        }
+        .institution-toggle a:hover { background: #5a6268; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .active-school { background: #2c7be5 !important; box-shadow: 0 4px 12px rgba(44,123,229,0.4) !important; }
+        .active-college { background: #6f42c1 !important; box-shadow: 0 4px 12px rgba(111,66,193,0.4) !important; }
+        .institution-icon { font-size: 20px; margin-right: 8px; }
+        .page-header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div style="max-width:1100px; margin:0 auto;">
+
+    <nav class="navbar">
+        <h3>Student Performance Assessment System</h3>
+        <div class="navbar-links">
+            <a href="{{ url_for('dashboard') }}"        class="nav-link">Dashboard</a>
+            <a href="{{ url_for('view_results') }}"     class="nav-link">View Results</a>
+            <a href="{{ url_for('history') }}"          class="nav-link">History</a>
+            <a href="{{ url_for('student_graph') }}"    class="nav-link">Graphs</a>
+            <a href="{{ url_for('model_comparison') }}" class="nav-link">Model Comparison</a>
+            <a href="{{ url_for('logout') }}"           class="nav-link">Logout</a>
+        </div>
+    </nav>
+
+    <div class="page-header-row">
+        <h2 style="color:#2c7be5; margin:0;">🤖 ML Model Comparison Analysis</h2>
+        {% if session.role == 'School Admin' %}
+            <span class="role-badge badge-school-admin">🏫 School Admin</span>
+        {% elif session.role == 'College Admin' %}
+            <span class="role-badge badge-college-admin">🎓 College Admin</span>
+        {% elif session.role == 'School Teacher' %}
+            <span class="role-badge badge-school-teacher">📚 School Teacher</span>
+        {% elif session.role == 'College Teacher' %}
+            <span class="role-badge badge-college-teacher">📖 College Teacher</span>
+        {% endif %}
+    </div>
+
+    <p style="text-align:center; color:#666; margin-top:6px;">
+        Comparing 3 machine learning algorithms on student performance data
+    </p>
+
+    <!--
+        ALL roles see BOTH toggle buttons here.
+        Model comparison is analytical/technical content — not private
+        student data — so no institution restriction applies.
+    -->
+    <div class="institution-toggle">
+        <a href="{{ url_for('model_comparison', institution='school') }}"
+           class="{% if institution == 'school' %}active-school{% endif %}">
+            <span class="institution-icon">🏫</span>School Models
+        </a>
+        <a href="{{ url_for('model_comparison', institution='college') }}"
+           class="{% if institution == 'college' %}active-college{% endif %}">
+            <span class="institution-icon">🎓</span>College Models
+        </a>
+    </div>
+
+    {% if data %}
+
+    {% set inst_label = institution|capitalize %}
+
+    <h3 class="section-title">📊 Dataset Overview — {{ inst_label }} Students</h3>
+    <div class="cards-container">
+        <div class="metric-card">
+            <h3>Total Records</h3>
+            <div class="metric-value">{{ data.dataset_size }}</div>
+            <p>{{ inst_label }} student records used for training</p>
+        </div>
+        <div class="metric-card">
+            <h3>Class Distribution</h3>
+            <div>
+                <span class="class-badge slow">Slow: {{ data.class_distribution['Slow Learner'] }}</span>
+                <span class="class-badge average">Average: {{ data.class_distribution['Average Learner'] }}</span>
+                <span class="class-badge fast">Fast: {{ data.class_distribution['Fast Learner'] }}</span>
+            </div>
+        </div>
+        <div class="metric-card">
+            <h3>🏆 Best Model</h3>
+            <div class="metric-value" style="font-size:20px;">{{ data.best_model }}</div>
+            <p>Highest R² Score for {{ inst_label }} data</p>
+        </div>
+    </div>
+
+    <div class="explanation-box" style="border-left-color:#ffc107; background:#fff3cd;">
+        <strong>📌 Why Separate Models for School and College?</strong>
+        <p style="margin-top:8px;">School and college students have fundamentally different grading scales:</p>
+        <ul style="margin-left:20px;">
+            <li><strong>School:</strong> Marks (0–100%), Class/Grade (8–12)</li>
+            <li><strong>College:</strong> GPA (0–10), Semester-based</li>
+        </ul>
+        <p>Building <strong>institution-specific models</strong> ensures higher accuracy and follows data science best practices.</p>
+    </div>
+
+    <h3 class="section-title">📈 Model Performance Comparison — {{ inst_label }}</h3>
+    <table class="comparison-table">
+        <thead>
+            <tr>
+                <th>Model</th><th>R² Score</th><th>MSE</th><th>RMSE</th>
+                <th>CV Mean</th><th>CV Std Dev</th><th>Verdict</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for model_name, metrics in data.results.items() %}
+            <tr {% if model_name == data.best_model %}class="best-model"{% endif %}>
+                <td>
+                    <strong>{{ model_name }}</strong>
+                    {% if model_name == data.best_model %}<span class="winner-badge">🏆 BEST</span>{% endif %}
+                </td>
+                <td>{{ metrics.r2_score }}</td>
+                <td>{{ metrics.mse }}</td>
+                <td>{{ metrics.rmse }}</td>
+                <td>{{ metrics.cv_mean }}</td>
+                <td>± {{ metrics.cv_std }}</td>
+                <td>
+                    {% if metrics.r2_score >= 0.9 %}✅ Excellent
+                    {% elif metrics.r2_score >= 0.7 %}✅ Good
+                    {% elif metrics.r2_score >= 0.5 %}⚠️ Moderate
+                    {% else %}❌ Poor{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3 class="section-title">📚 Understanding the Metrics</h3>
+    <div class="explanation-box">
+        <strong>R² Score:</strong> Measures how well the model explains the data. Range 0–1. Higher is better.
+    </div>
+    <div class="explanation-box">
+        <strong>MSE (Mean Squared Error):</strong> Average squared difference between actual and predicted values. Lower is better.
+    </div>
+    <div class="explanation-box">
+        <strong>RMSE (Root Mean Squared Error):</strong> Square root of MSE. Same units as target variable. Lower is better.
+    </div>
+    <div class="explanation-box">
+        <strong>CV Mean (Cross-Validation Mean):</strong> Average R² across 5 train/test splits. Shows generalisation ability.
+    </div>
+
+    <h3 class="section-title">🔍 About Each Model</h3>
+    {% for model_name, explanation in data.model_explanations.items() %}
+    <div class="explanation-box">
+        <strong>{{ model_name }}{% if model_name == data.best_model %}<span class="winner-badge">🏆 Selected</span>{% endif %}</strong>
+        <p style="margin-top:8px;">{{ explanation }}</p>
+    </div>
+    {% endfor %}
+
+    <h3 class="section-title">✅ Why {{ data.best_model }} Was Chosen for {{ inst_label }}</h3>
+    <div class="explanation-box" style="border-left-color:#28a745;">
+        <p>{{ data.why_chosen }}</p>
+        <br>
+        <p><strong>Key Advantages of {{ data.best_model }}:</strong></p>
+        {% if data.best_model == 'Random Forest' %}
+        <ul>
+            <li>✅ Handles complex, non-linear relationships in student data</li>
+            <li>✅ Robust to outliers (unusual student records)</li>
+            <li>✅ Works well with mixed data types</li>
+            <li>✅ Provides feature importance (which factors matter most)</li>
+            <li>✅ Less prone to overfitting than single decision trees</li>
+        </ul>
+        {% elif data.best_model == 'Support Vector Machine' %}
+        <ul>
+            <li>✅ Effective with small to medium datasets</li>
+            <li>✅ Works well with clear class boundaries</li>
+            <li>✅ Robust to overfitting in high-dimensional space</li>
+            <li>✅ Excellent for {{ inst_label }} student patterns</li>
+        </ul>
+        {% else %}
+        <ul>
+            <li>✅ Simple and interpretable</li>
+            <li>✅ Fast to train and predict</li>
+            <li>✅ Good baseline for {{ inst_label }} data</li>
+        </ul>
+        {% endif %}
+    </div>
+
+    <h3 class="section-title">🔄 Cross-Validation Details (5-Fold)</h3>
+    <p style="color:#666;">
+        The dataset was split into 5 parts. Each model was trained 5 times,
+        each time using a different part for testing.
+    </p>
+    <table class="comparison-table">
+        <thead>
+            <tr>
+                <th>Model</th><th>Fold 1</th><th>Fold 2</th><th>Fold 3</th>
+                <th>Fold 4</th><th>Fold 5</th><th>Average</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for model_name, metrics in data.results.items() %}
+            <tr {% if model_name == data.best_model %}class="best-model"{% endif %}>
+                <td><strong>{{ model_name }}</strong></td>
+                {% for score in metrics.cv_scores %}<td>{{ score }}</td>{% endfor %}
+                <td><strong>{{ metrics.cv_mean }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+    <div style="text-align:center; padding:60px; color:red;">
+        <h3>⚠️ No comparison data found!</h3>
+        <p>Please run <strong>python model_comparison.py</strong> first to generate results.</p>
+    </div>
+    {% endif %}
+
+    <br><br>
+</div>
+</body>
+</html>

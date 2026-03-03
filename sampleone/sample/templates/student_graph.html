@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Graph</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <h3>Student Performance Assessment System</h3>
+            <div class="navbar-links">
+                <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+                <a href="{{ url_for('view_results') }}" class="nav-link">View Results</a>
+                <a href="{{ url_for('history') }}" class="nav-link">History</a>
+                <a href="{{ url_for('student_graph') }}" class="nav-link">Graphs</a>
+                {% if session.role != 'Student' %}
+                    <a href="{{ url_for('model_comparison') }}" class="nav-link">Model Comparison</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+            </div>
+        </nav>
+
+        <h2>Student Performance Graph</h2>
+
+        <form method="POST">
+            <input type="text" name="student_id" placeholder="Enter Student ID (e.g., SCH001, COL001)" required>
+            <button type="submit">Generate Graph</button>
+        </form>
+
+        {% if error %}
+        <p style="color:red; font-weight:bold;">{{ error }}</p>
+        {% endif %}
+
+        {% if no_data %}
+        <p style="color:red;"><b>No performance data found for the entered Student ID.</b></p>
+        {% endif %}
+
+        {% if ml_graph_html %}
+        <h3>ML Prediction Graph</h3>
+        <div>{{ ml_graph_html|safe }}</div>
+        {% if accuracy_text %}
+        <p><strong>{{ accuracy_text }}</strong></p>
+        {% endif %}
+        <p>The ML prediction graph uses linear regression to forecast future student marks based on historical performance data. It plots actual marks over time and extends the trend to predict upcoming assessments, helping educators identify performance trends and intervene early if needed.</p>
+        {% endif %}
+
+        {% if perf_graph_html %}
+        <div>{{ perf_graph_html|safe }}</div>
+        {% endif %}
+
+        {% if att_graph_html %}
+        <div>{{ att_graph_html|safe }}</div>
+        {% endif %}
+
+        {% if bar_graph_html %}
+        <h3>Average Performance Comparison</h3>
+        <div>{{ bar_graph_html|safe }}</div>
+        {% endif %}
+
+        {% if student_id %}
+        <br><br>
+        <a href="{{ url_for('download_graph', student_id=student_id) }}">
+            <button type="button" style="padding: 10px 20px; background: #2c7be5; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                📄 Download PDF Report
+            </button>
+        </a>
+        {% endif %}
+    </div>
+</body>
+
+</html>

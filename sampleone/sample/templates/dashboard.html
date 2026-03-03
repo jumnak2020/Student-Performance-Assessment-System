@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Student Performance</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
+        .container { width: 540px; margin: 30px auto; background: #fff; padding: 28px; border-radius: 8px; box-shadow: 0 2px 15px rgba(0,0,0,0.12); }
+        h2 { color: #2c7be5; margin-bottom: 4px; }
+        .role-badge { display:inline-block; padding:5px 14px; border-radius:14px; font-size:13px; font-weight:bold; color:white; margin-bottom:18px; }
+        .badge-school-admin   { background:#2c7be5; }
+        .badge-college-admin  { background:#6f42c1; }
+        .badge-school-teacher { background:#28a745; }
+        .badge-college-teacher{ background:#fd7e14; }
+        .badge-student        { background:#dc3545; }
+        .lock-notice { font-size:12px; color:#856404; margin-top:6px; padding:7px 12px; background:#fff3cd; border-left:3px solid #ffc107; border-radius:0 4px 4px 0; }
+        label { display:block; margin-top:14px; font-weight:bold; color:#333; font-size:14px; }
+        input, select { width:100%; padding:9px; margin-top:5px; border:1px solid #ccc; border-radius:4px; font-size:14px; }
+        select:disabled, input:disabled { background:#e9ecef; color:#495057; cursor:not-allowed; }
+        button { width:100%; padding:10px; margin-top:10px; background:#2c7be5; color:white; border:none; border-radius:4px; font-size:14px; font-weight:bold; cursor:pointer; }
+        button:hover { background:#1a68d1; }
+        .btn-purple { background:#6f42c1; } .btn-purple:hover { background:#5a32a3; }
+        .btn-green  { background:#28a745; } .btn-green:hover  { background:#1e7e34; }
+        .btn-grey   { background:#6c757d; } .btn-grey:hover   { background:#5a6268; }
+        hr { margin:22px 0; border:none; border-top:1px solid #e0e0e0; }
+        .section-label { font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#999; margin-bottom:2px; }
+        .error-msg { color:red; font-weight:bold; margin-bottom:12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h2>Student Performance Assessment</h2>
+
+    {% if session.role == 'School Admin' %}
+        <span class="role-badge badge-school-admin">🏫 School Admin</span>
+    {% elif session.role == 'College Admin' %}
+        <span class="role-badge badge-college-admin">🎓 College Admin</span>
+    {% elif session.role == 'School Teacher' %}
+        <span class="role-badge badge-school-teacher">📚 School Teacher</span>
+    {% elif session.role == 'College Teacher' %}
+        <span class="role-badge badge-college-teacher">📖 College Teacher</span>
+    {% elif session.role == 'Student' %}
+        <span class="role-badge badge-student">🧑‍🎓 Student</span>
+    {% endif %}
+
+    {% if error %}<p class="error-msg">{{ error }}</p>{% endif %}
+
+    <!-- ASSESS STUDENT FORM -->
+    <p class="section-label">Assess a Student</p>
+    <form action="/result" method="POST">
+
+        <label for="institutionType">Institution Type</label>
+
+        {% if institution_scope == 'school' %}
+            <select id="institutionType" name="institution_type" disabled>
+                <option value="school" selected>School</option>
+            </select>
+            <input type="hidden" name="institution_type" value="school">
+            <p class="lock-notice">
+                🔒 You can only assess <strong>School</strong> students (Classes 8–12)
+            </p>
+        {% elif institution_scope == 'college' %}
+            <select id="institutionType" name="institution_type" disabled>
+                <option value="college" selected>College</option>
+            </select>
+            <input type="hidden" name="institution_type" value="college">
+            <p class="lock-notice">
+                🔒 You can only assess <strong>College</strong> students (Semesters 1–8)
+            </p>
+        {% else %}
+            <select id="institutionType" name="institution_type" required>
+                <option value="">Select Institution</option>
+                <option value="school">School</option>
+                <option value="college">College</option>
+            </select>
+        {% endif %}
+
+        <label for="studentName">Student Name</label>
+        <input type="text" name="student_name" id="studentName" placeholder="Enter Student Name" required>
+
+        <p style="font-size:12px; color:#2c7be5; margin-top:8px; margin-bottom:0;">
+            Student ID will be auto-generated (e.g. SCH001 or COL001)
+        </p>
+
+        <label id="marksLabel">
+            {% if institution_scope == 'school' %}Previous Term Percentage (0-100)
+            {% elif institution_scope == 'college' %}Prior GPA / CGPA (0-10)
+            {% else %}Prior GPA / CGPA{% endif %}
+        </label>
+        <input type="number" id="marks" name="marks"
+               {% if institution_scope == 'school' %}min="0" max="100" step="1"
+               {% elif institution_scope == 'college' %}min="0" max="10" step="0.1"
+               {% else %}step="0.1"{% endif %}
+               placeholder="Enter value" required>
+
+        <label>Attendance Percentage (0-100)</label>
+        <input type="number" name="attendance" min="0" max="100" step="0.1" placeholder="Enter attendance %" required>
+
+        <label id="behaviorLabel">
+            {% if institution_scope == 'school' %}Class / Grade (8-12)
+            {% elif institution_scope == 'college' %}Semester (1-8)
+            {% else %}Semester{% endif %}
+        </label>
+        <input type="number" id="behavior" name="semester"
+               {% if institution_scope == 'school' %}min="8" max="12"
+               {% elif institution_scope == 'college' %}min="1" max="8"
+               {% else %}min="1"{% endif %}
+               placeholder="Enter value" required>
+
+        <button type="submit" style="margin-top:20px;">Assess Performance</button>
+    </form>
+
+    <hr>
+
+    <!-- NAVIGATION BUTTONS -->
+    <p class="section-label">Quick Navigation</p>
+
+    {% if institution_scope == 'school' %}
+        <button onclick="window.location.href='/view_results?institution=school'">📋 View School Results</button>
+        <button onclick="window.location.href='/history'" class="btn-green">📁 View History</button>
+        {% if session.role != 'Student' %}
+            <button onclick="window.location.href='/model_comparison?institution=school'" class="btn-purple">🤖 School Model Comparison</button>
+        {% endif %}
+    {% elif institution_scope == 'college' %}
+        <button onclick="window.location.href='/view_results?institution=college'">📋 View College Results</button>
+        <button onclick="window.location.href='/history'" class="btn-green">📁 View History</button>
+        {% if session.role != 'Student' %}
+            <button onclick="window.location.href='/model_comparison?institution=college'" class="btn-purple">🤖 College Model Comparison</button>
+        {% endif %}
+    {% else %}
+        <button onclick="window.location.href='/view_results'">📋 View All Results</button>
+        <button onclick="window.location.href='/history'" class="btn-green">📁 View History</button>
+        {% if session.role != 'Student' %}
+            <button onclick="window.location.href='/model_comparison'" class="btn-purple">🤖 Model Comparison</button>
+        {% endif %}
+    {% endif %}
+
+    <hr>
+
+    <!-- STUDENT GRAPH SEARCH -->
+    <p class="section-label">Student Performance Graph</p>
+    <form action="/student_graph" method="POST">
+        <label for="student_id_graph">Student ID (e.g. SCH001 or COL001)</label>
+        <input type="text" name="student_id" id="student_id_graph" placeholder="Enter Student ID" required>
+        <button type="submit">📊 View Student Graph</button>
+    </form>
+
+    <hr>
+    <button class="btn-grey" onclick="window.location.href='/logout'">🚪 Logout</button>
+</div>
+
+<script>
+    const sel = document.getElementById('institutionType');
+    if (sel && !sel.disabled) {
+        sel.addEventListener('change', function () {
+            const ml = document.getElementById('marksLabel');
+            const bl = document.getElementById('behaviorLabel');
+            const mi = document.getElementById('marks');
+            const bi = document.getElementById('behavior');
+            if (this.value === 'school') {
+                ml.textContent = 'Previous Term Percentage (0-100)';
+                bl.textContent = 'Class / Grade (8-12)';
+                mi.max=100; mi.step=1; mi.min=0;
+                bi.min=8; bi.max=12;
+                mi.placeholder='Enter marks (0-100)';
+                bi.placeholder='Enter class (8-12)';
+            } else if (this.value === 'college') {
+                ml.textContent = 'Prior GPA / CGPA (0-10)';
+                bl.textContent = 'Semester (1-8)';
+                mi.max=10; mi.step=0.1; mi.min=0;
+                bi.min=1; bi.max=8;
+                mi.placeholder='Enter GPA (0-10)';
+                bi.placeholder='Enter semester (1-8)';
+            } else {
+                ml.textContent = 'Prior GPA / CGPA';
+                bl.textContent = 'Semester';
+                mi.removeAttribute('max');
+                bi.removeAttribute('max');
+            }
+        });
+    }
+</script>
+</body>
+</html>

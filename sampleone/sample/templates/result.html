@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessment Result - SPAS</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+    <h3>Assessment Result - SPAS</h3>
+    <div class="navbar-links">
+        <a href="{{ url_for('dashboard') }}" class="nav-link">Home</a>
+        <a href="{{ url_for('view_results') }}" class="nav-link">View Results</a>
+    </div>
+        </nav>
+
+        <div style="text-align: center;">
+            <h2>Performance Report</h2>
+            <h3>{{ name }}</h3>
+
+            <div
+                class="result-badge {{ 'slow' if prediction == 'Slow Learner' else 'fast' if prediction == 'Fast Learner' else 'average' }}">
+                Result: {{ prediction }}
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h4>Academic Score</h4>
+                <h2>{{ marks }}%</h2>
+            </div>
+            <div class="card">
+                <h4>Attendance</h4>
+                <h2>{{ attendance }}%</h2>
+            </div>
+            <div class="card">
+                <h4>Behavior</h4>
+                <h2>{{ "%.1f"|format(behavior) }}/10</h2>
+            </div>
+        </div>
+
+        <div class="suggestions">
+            <h3>💡 Improvement Suggestions</h3>
+            <ul>
+                {% for suggestion in suggestions %}
+                <li style="margin-bottom: 0.5rem;">{{ suggestion }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <br>
+        <button onclick="window.print()" class="btn" style="background-color: var(--secondary-color);">Print
+            Report</button>
+    </div>
+</body>
+
+</html>

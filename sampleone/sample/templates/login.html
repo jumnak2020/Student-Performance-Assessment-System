@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Student Performance</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
+        .container { width: 500px; margin: 60px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 15px rgba(0,0,0,0.12); }
+        h2 { color: #2c7be5; text-align: center; margin-bottom: 6px; }
+        .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 24px; }
+        label { display: block; margin-top: 16px; font-weight: bold; color: #333; font-size: 14px; }
+        input, select { width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #2c7be5; box-shadow: 0 0 0 2px rgba(44,123,229,0.15); }
+        button { width: 100%; padding: 11px; margin-top: 24px; background: #2c7be5; color: white; border: none; border-radius: 4px; font-size: 15px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #1a68d1; }
+        .role-hint { font-size: 12px; margin-top: 6px; padding: 8px 12px; border-radius: 0 4px 4px 0; display: none; }
+        .hint-sa { background:#eff6ff; border-left:3px solid #2c7be5; color:#1a4a8a; }
+        .hint-ca { background:#f5f0ff; border-left:3px solid #6f42c1; color:#4a2a8a; }
+        .hint-st { background:#e8f5e9; border-left:3px solid #28a745; color:#155724; }
+        .hint-ct { background:#fff8e1; border-left:3px solid #fd7e14; color:#7a4200; }
+        .hint-s  { background:#fff3e0; border-left:3px solid #fd7e14; color:#7a4200; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Student Performance System</h2>
+    <p class="subtitle">Select your role and enter your ID to login</p>
+    <form action="/login" method="POST">
+        <label for="role">Select Role</label>
+        <select id="role" name="role" required>
+            <option value="">-- Select Your Role --</option>
+            <option value="School Admin">School Admin</option>
+            <option value="College Admin">College Admin</option>
+            <option value="School Teacher">School Teacher</option>
+            <option value="College Teacher">College Teacher</option>
+            <option value="Student">Student</option>
+        </select>
+        <div class="role-hint" id="roleHint"></div>
+        <label id="idLabel">ID</label>
+        <input type="text" id="user_id" name="user_id" placeholder="Enter your ID" required>
+        <button type="submit">Login</button>
+    </form>
+</div>
+<script>
+    const roleSelect  = document.getElementById('role');
+    const idLabel     = document.getElementById('idLabel');
+    const userIdInput = document.getElementById('user_id');
+    const roleHint    = document.getElementById('roleHint');
+    const cfg = {
+        'School Admin':   { label:'School Admin ID',   ph:'Enter School Admin ID',   hint:'Admin access — School data only (Classes 8-12)',         cls:'hint-sa' },
+        'College Admin':  { label:'College Admin ID',  ph:'Enter College Admin ID',  hint:'Admin access — College data only (Semesters 1-8)',        cls:'hint-ca' },
+        'School Teacher': { label:'School Teacher ID', ph:'Enter School Teacher ID', hint:'Teacher access — School student data only (Classes 8-12)',cls:'hint-st' },
+        'College Teacher':{ label:'College Teacher ID',ph:'Enter College Teacher ID',hint:'Teacher access — College student data only (Semesters 1-8)',cls:'hint-ct'},
+        'Student':        { label:'Student ID (e.g. SCH001 or COL001)', ph:'Enter your Student ID', hint:'View your own performance results and history', cls:'hint-s' }
+    };
+    roleSelect.addEventListener('change', function () {
+        const c = cfg[this.value];
+        if (c) {
+            idLabel.textContent     = c.label;
+            userIdInput.placeholder = c.ph;
+            roleHint.textContent    = c.hint;
+            roleHint.className      = 'role-hint ' + c.cls;
+            roleHint.style.display  = 'block';
+        } else {
+            idLabel.textContent     = 'ID';
+            userIdInput.placeholder = 'Enter your ID';
+            roleHint.style.display  = 'none';
+        }
+    });
+</script>
+</body>
+</html>

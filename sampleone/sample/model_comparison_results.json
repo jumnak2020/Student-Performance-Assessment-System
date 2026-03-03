@@ -1,0 +1,122 @@
+{
+    "school": {
+        "institution_type": "school",
+        "results": {
+            "Linear Regression": {
+                "r2_score": 0.9812,
+                "mse": 0.0125,
+                "rmse": 0.112,
+                "cv_mean": 0.9802,
+                "cv_std": 0.0036,
+                "cv_scores": [
+                    0.9756,
+                    0.9799,
+                    0.978,
+                    0.9863,
+                    0.981
+                ]
+            },
+            "Random Forest": {
+                "r2_score": 0.9999,
+                "mse": 0.0001,
+                "rmse": 0.0095,
+                "cv_mean": 0.9943,
+                "cv_std": 0.007,
+                "cv_scores": [
+                    1.0,
+                    1.0,
+                    0.9865,
+                    0.985,
+                    1.0
+                ]
+            },
+            "Support Vector Machine": {
+                "r2_score": 0.9864,
+                "mse": 0.009,
+                "rmse": 0.0951,
+                "cv_mean": 0.983,
+                "cv_std": 0.0048,
+                "cv_scores": [
+                    0.9826,
+                    0.9883,
+                    0.9772,
+                    0.9784,
+                    0.9886
+                ]
+            }
+        },
+        "best_model": "Random Forest",
+        "dataset_size": 180,
+        "class_distribution": {
+            "Slow Learner": 60,
+            "Average Learner": 60,
+            "Fast Learner": 60
+        },
+        "model_explanations": {
+            "Linear Regression": "Predicts a linear relationship between features and performance. Simple, fast, and interpretable but may miss complex patterns.",
+            "Random Forest": "Uses multiple decision trees to make predictions. Handles complex patterns well and is robust to outliers. Generally more accurate than Linear Regression.",
+            "Support Vector Machine": "Finds the best boundary between classes. Works well with small datasets and high-dimensional data. Requires feature scaling."
+        },
+        "why_chosen": "Random Forest achieved the highest R\u00b2 score of 0.9999 on school student data, meaning it best explains the variance in school performance patterns."
+    },
+    "college": {
+        "institution_type": "college",
+        "results": {
+            "Linear Regression": {
+                "r2_score": 0.7935,
+                "mse": 0.0827,
+                "rmse": 0.2875,
+                "cv_mean": 0.7856,
+                "cv_std": 0.0318,
+                "cv_scores": [
+                    0.8034,
+                    0.7735,
+                    0.8012,
+                    0.8203,
+                    0.7296
+                ]
+            },
+            "Random Forest": {
+                "r2_score": 0.9998,
+                "mse": 0.0001,
+                "rmse": 0.0091,
+                "cv_mean": 0.9875,
+                "cv_std": 0.014,
+                "cv_scores": [
+                    0.9727,
+                    0.9965,
+                    1.0,
+                    0.9997,
+                    0.9683
+                ]
+            },
+            "Support Vector Machine": {
+                "r2_score": 0.9033,
+                "mse": 0.0387,
+                "rmse": 0.1967,
+                "cv_mean": 0.8964,
+                "cv_std": 0.0267,
+                "cv_scores": [
+                    0.9014,
+                    0.8791,
+                    0.942,
+                    0.8973,
+                    0.8621
+                ]
+            }
+        },
+        "best_model": "Random Forest",
+        "dataset_size": 288,
+        "class_distribution": {
+            "Slow Learner": 25,
+            "Average Learner": 138,
+            "Fast Learner": 125
+        },
+        "model_explanations": {
+            "Linear Regression": "Predicts a linear relationship between features and performance. Simple, fast, and interpretable but may miss complex patterns.",
+            "Random Forest": "Uses multiple decision trees to make predictions. Handles complex patterns well and is robust to outliers. Generally more accurate than Linear Regression.",
+            "Support Vector Machine": "Finds the best boundary between classes. Works well with small datasets and high-dimensional data. Requires feature scaling."
+        },
+        "why_chosen": "Random Forest achieved the highest R\u00b2 score of 0.9998 on college student data, meaning it best explains the variance in college performance patterns."
+    }
+}

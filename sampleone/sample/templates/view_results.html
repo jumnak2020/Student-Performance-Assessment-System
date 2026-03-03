@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .page-header { display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; margin:20px 0 8px 0; }
+        .role-badge { display:inline-block; padding:5px 14px; border-radius:14px; font-size:13px; font-weight:bold; color:white; }
+        .badge-school-admin   { background:#2c7be5; }
+        .badge-college-admin  { background:#6f42c1; }
+        .badge-school-teacher { background:#28a745; }
+        .badge-college-teacher{ background:#fd7e14; }
+        .badge-student        { background:#dc3545; }
+        .filter-bar { text-align:center; margin:18px 0; }
+        .filter-bar a { display:inline-block; margin:0 8px; padding:10px 22px; color:white; text-decoration:none; border-radius:5px; font-size:14px; font-weight:bold; transition:opacity 0.2s; }
+        .filter-bar a:hover { opacity:0.85; }
+        .btn-school  { background:#2c7be5; }
+        .btn-college { background:#6f42c1; }
+        .results-wrapper { max-width:1200px; margin:0 auto; overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; margin-top:10px; background:white; border-radius:6px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+        thead tr { background-color:#2c7be5; color:white; }
+        th { padding:12px 10px; text-align:center; font-size:14px; }
+        td { padding:10px; text-align:center; border-bottom:1px solid #e5e5e5; font-size:14px; }
+        tbody tr:nth-child(even) { background-color:#f8f9ff; }
+        tbody tr:hover { background-color:#eef3ff; }
+        .no-data { text-align:center; padding:30px; color:#888; font-size:15px; }
+        .info-bar { text-align:center; padding:10px; background:#e8f4fd; border-radius:6px; margin:10px auto; max-width:600px; font-size:13px; color:#1a4a8a; }
+    </style>
+</head>
+<body>
+<div style="max-width:1200px; margin:0 auto;">
+
+    <nav class="navbar">
+        <h3>Student Performance Assessment System</h3>
+        <div class="navbar-links">
+            <a href="{{ url_for('dashboard') }}"        class="nav-link">Dashboard</a>
+            <a href="{{ url_for('view_results') }}"     class="nav-link">View Results</a>
+            <a href="{{ url_for('history') }}"          class="nav-link">History</a>
+            <a href="{{ url_for('student_graph') }}"    class="nav-link">Graphs</a>
+            {% if session.role != 'Student' %}
+                <a href="{{ url_for('model_comparison') }}" class="nav-link">Model Comparison</a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}"           class="nav-link">Logout</a>
+        </div>
+    </nav>
+
+    <!-- Page Heading + Role Badge -->
+    <div class="page-header">
+        <h2 style="margin:0; color:#2c7be5;">📋 Student Performance Results</h2>
+        {% if session.role == 'School Admin' %}
+            <span class="role-badge badge-school-admin">🏫 School Admin</span>
+        {% elif session.role == 'College Admin' %}
+            <span class="role-badge badge-college-admin">🎓 College Admin</span>
+        {% elif session.role == 'School Teacher' %}
+            <span class="role-badge badge-school-teacher">📚 School Teacher</span>
+        {% elif session.role == 'College Teacher' %}
+            <span class="role-badge badge-college-teacher">📖 College Teacher</span>
+        {% elif session.role == 'Student' %}
+            <span class="role-badge badge-student">🧑‍🎓 Student</span>
+        {% endif %}
+    </div>
+
+    <!--
+        FILTER BUTTONS — role-based:
+        School Admin / School Teacher  → only View School Results button
+        College Admin / College Teacher → only View College Results button
+        Student → no buttons
+    -->
+    {% if session.role != 'Student' %}
+    <div class="filter-bar">
+
+        {% if session.role in ['School Admin', 'School Teacher'] %}
+            <a href="{{ url_for('view_results', institution='school') }}" class="btn-school">
+                🏫 View School Results
+            </a>
+
+        {% elif session.role in ['College Admin', 'College Teacher'] %}
+            <a href="{{ url_for('view_results', institution='college') }}" class="btn-college">
+                🎓 View College Results
+            </a>
+
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Info bar showing what is currently displayed -->
+    {% if institution %}
+        <div class="info-bar">
+            Showing: <strong>{{ institution|capitalize }}</strong> student records
+            {% if results %} — {{ results|length }} record(s) found{% endif %}
+        </div>
+    {% elif results %}
+        <div class="info-bar">
+            Showing all records — {{ results|length }} record(s) found
+        </div>
+    {% endif %}
+
+    <!-- RESULTS TABLE -->
+    <div class="results-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Student ID</th>
+                    <th>Student Name</th>
+                    {% if results and results|length > 0 %}
+                        {% if results[0].institution_type|lower == 'college' %}
+                            <th>Prior GPA / CGPA</th>
+                            <th>Attendance %</th>
+                            <th>Semester</th>
+                        {% else %}
+                            <th>Previous Term %</th>
+                            <th>Attendance %</th>
+                            <th>Class / Grade</th>
+                        {% endif %}
+                    {% else %}
+                        <th>Marks / GPA</th>
+                        <th>Attendance %</th>
+                        <th>Class / Semester</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in results %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ row.student_id }}</td>
+                    <td>{{ row.student_name }}</td>
+                    {% if row.institution_type|lower == 'college' %}
+                        <td>{{ row.prior_gpa if row.prior_gpa else 'N/A' }}</td>
+                        <td>{{ row.attendance_percentage }}%</td>
+                        <td>{{ row.semester if row.semester else 'N/A' }}</td>
+                    {% else %}
+                        <td>{{ row.marks if row.marks else 'N/A' }}%</td>
+                        <td>{{ row.attendance_percentage }}%</td>
+                        <td>{{ row.class_grade if row.class_grade else 'N/A' }}</td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="no-data">
+                        No results found. Click the button above to load results.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+</html>
